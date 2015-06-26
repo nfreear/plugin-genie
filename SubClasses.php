@@ -23,7 +23,7 @@ class SubClasses extends OffsetIterator
     const PLUGIN_INTERFACE = '\\IET_OU\\SubClasses\\PluginInterface';
     const REGISTER_FN = 'registerPlugin';
 
-    public static $verbose = true; //false;
+    public static $verbose = false;
     protected $classes = array();
 
     protected static $skip_me = array('\\Wikimedia\\Composer\\MergePlugin', '\\Nfreear\\Composer\\Suggest');
@@ -48,13 +48,23 @@ class SubClasses extends OffsetIterator
         foreach ($this->classes as $class) {
             if (is_subclass_of($class, $base_class)) {
                 if ($callback) {
-                    if ($use_constructor) {
-                        $obj = new $class ();
-                    } else {
-                        $reflect = new \ReflectionClass($class);
-                        $obj = $reflect->newInstanceWithoutConstructor();
+                    try {
+                        if ($use_constructor) {
+                            $obj = new $class ();
+                        } else {
+                            $reflect = new \ReflectionClass($class);
+                            if ($reflect->isInstantiable()) {
+                                $obj = $reflect->newInstanceWithoutConstructor();
+                            }
+                        }
+                        if ($obj) {
+                            $obj->{ self::REGISTER_FN }($results);
+                        }
+                    } catch (\ReflectionException $e) {
+                        $this->debug('Warning! (RF) '. $e->getMessage());
+                    } catch (\Exception $e) {
+                        $this->debug('Warning! '. $e->getMessage());
                     }
-                    $obj->{ self::REGISTER_FN }($results);
                     //Was: $results[ $class::{ $callback }() ] = $class;
                 } else {
                     $results[] = $class;
@@ -86,7 +96,6 @@ class SubClasses extends OffsetIterator
             $path = __DIR__ .'/../../vendor/composer/autoload_psr4.php';
             $psr4 = require $path;
         }
-        //$flat_paths = call_user_func_array('array_merge', $psr4);
         return $psr4;
     }
 
@@ -97,7 +106,6 @@ class SubClasses extends OffsetIterator
 
         foreach ($psr4_paths as $namespace => $paths) {
             //$glob = sprintf('{%s/*.php}', implode('/*.php,', $paths));  // Not on Windows!
-            //$glob = $paths[ 0 ] .'/*.php';
             foreach ($paths as $file_path) {
                 $glob = $file_path .'/*.php';
                 $this->debug('Glob: '. $glob);
@@ -113,23 +121,22 @@ class SubClasses extends OffsetIterator
                     }
 
                     $this->debug($class, $path);
-
                     try {
-                        if (class_exists($class) && is_subclass_of($class, self::PLUGIN_INTERFACE))
+                        if (class_exists($class)
+                            && is_subclass_of($class, self::PLUGIN_INTERFACE)) {
                         /*$reflect = new \ReflectionClass($class);
                         if ($reflect->implementsInterface(self::PLUGIN_INTERFACE)
-                        && $reflect->isInstantiable())*/ {
-                            $this->classes[] = $class; //ltrim($class, '\\');
+                            && $reflect->isInstantiable()) {*/
+                            $this->classes[] = $class;
                         }
-                    } catch(ErrorException $e) {
-                        $this->debug('XX Warning! '. $e->getMessage());
                     } catch (\Exception $e) {
                         $this->debug('Warning! '. $e->getMessage());
                     }
                 }
             }
         }
-        $this->debug('OK, discovered classes: '. count($this->classes));
+        $count = count($this->classes);
+        $this->debug('OK, discovered classes: '. $count, $this->classes);
     }
 
     protected function debug($message)
