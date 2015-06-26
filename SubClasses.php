@@ -23,8 +23,10 @@ class SubClasses extends OffsetIterator
     const PLUGIN_INTERFACE = '\\IET_OU\\SubClasses\\PluginInterface';
     const REGISTER_FN = 'registerPlugin';
 
-    public static $verbose = false;
+    public static $verbose = true; //false;
     protected $classes = array();
+
+    protected static $skip_me = array('\\Wikimedia\\Composer\\MergePlugin', '\\Nfreear\\Composer\\Suggest');
 
 
     public function __construct($offset = self::PHP_CORE_OFFSET)
@@ -68,6 +70,11 @@ class SubClasses extends OffsetIterator
         return $this->match('IET_OU\\Open_Media_Player\\Oembed_Provider');
     }
 
+    public function get_player_themes()
+    {
+        return $this->match('IET_OU\\Open_Media_Player\\Media_Player_Theme');
+    }
+
 
     protected function getPsr4Paths()
     {
@@ -79,32 +86,46 @@ class SubClasses extends OffsetIterator
             $path = __DIR__ .'/../../vendor/composer/autoload_psr4.php';
             $psr4 = require $path;
         }
-        $flat_paths = call_user_func_array('array_merge', $psr4);
+        //$flat_paths = call_user_func_array('array_merge', $psr4);
         return $psr4;
     }
 
 
     protected function discoverClasses()
     {
-        $psr4 = $this->getPsr4Paths();
+        $psr4_paths = $this->getPsr4Paths();
 
-        foreach ($psr4 as $namespace => $paths) {
-            $glob = sprintf('{%s/*.php}', implode('/*.php,', $paths));
+        foreach ($psr4_paths as $namespace => $paths) {
+            //$glob = sprintf('{%s/*.php}', implode('/*.php,', $paths));  // Not on Windows!
             //$glob = $paths[ 0 ] .'/*.php';
-            $this->debug('Glob: '. $glob);
-            $files = glob($glob, GLOB_BRACE | GLOB_MARK);
-            foreach ($files as $path) {
-                $name = basename($path, '.php');
-                $class = '\\' . $namespace . $name;
-                //if ('MergePlugin' == $name || 'Suggest' == $name) continue;
-                try {
-                    $reflect = new \ReflectionClass($class);
-                    if ($reflect->implementsInterface(self::PLUGIN_INTERFACE)
-                    && $reflect->isInstantiable()) {
-                        $this->classes[] = $class; //ltrim($class, '\\');
+            foreach ($paths as $file_path) {
+                $glob = $file_path .'/*.php';
+                $this->debug('Glob: '. $glob);
+                $files = glob($glob, GLOB_MARK);
+                foreach ($files as $path) {
+                    $name = basename($path, '.php');
+                    $class = '\\' . $namespace . $name;
+
+                    // A hack :(!
+                    if (in_array($class, self::$skip_me)) {
+                        $this->debug("Skipping class '$class'");
+                        continue;
                     }
-                } catch (\Exception $e) {
-                    $this->debug('Warning! '. $e->getMessage());
+
+                    $this->debug($class, $path);
+
+                    try {
+                        if (class_exists($class) && is_subclass_of($class, self::PLUGIN_INTERFACE))
+                        /*$reflect = new \ReflectionClass($class);
+                        if ($reflect->implementsInterface(self::PLUGIN_INTERFACE)
+                        && $reflect->isInstantiable())*/ {
+                            $this->classes[] = $class; //ltrim($class, '\\');
+                        }
+                    } catch(ErrorException $e) {
+                        $this->debug('XX Warning! '. $e->getMessage());
+                    } catch (\Exception $e) {
+                        $this->debug('Warning! '. $e->getMessage());
+                    }
                 }
             }
         }
