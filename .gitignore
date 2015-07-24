@@ -1,0 +1,15 @@
+
+composer.lock
+vendor/
+*.diff
+*.patch
+
+# Windows image file caches
+Thumbs.db
+
+# Mac crap
+.DS_Store
+
+
+#End.
+

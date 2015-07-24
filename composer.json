@@ -1,0 +1,42 @@
+{
+  "name": "nfreear/plugin-genie",
+  "description": "PHP plugin discovery library built on PSR-4 autoloading.",
+  "keywords": [ "PSR-4", "autoload", "plugin", "composer", "ouplayer", "OpenUniversity", "IET-OU" ],
+  "homepage": "http://embed.open.ac.uk/",
+  "type": "library",
+  "license": "MIT",
+  "minimum-stability": "dev",
+  "time": "2015-06-26",
+  "authors": [
+    { "name": "Nick Freear (@nfreear)" }
+  ],
+  "support": {
+    "source": "https://github.com/nfreear/plugin-genie"
+  },
+  "require": {
+    "php": ">=5.3.3"
+  },
+  "require-dev": {
+    "squizlabs/php_codesniffer": "~2.1.0",
+    "jakub-onderka/php-parallel-lint": "~0.8",
+    "phpunit/phpunit": "~4.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "IET_OU\\SubClasses\\": "src"
+    }
+  },
+  "scripts": {
+    "test": [
+      "composer validate --no-interaction",
+      "parallel-lint src/*",
+      "phpcs --standard=PSR2 -n --encoding=utf-8 --extensions=php src/*",
+      "#phpunit"
+    ]
+  },
+  "extra": {
+    "//": [
+      "https://docs.google.com/document/d/1aBoElqmknS2WxDoyIjdnWOAlZgD430jOMFFD7UTzX9k/#"
+    ]
+  }
+}
