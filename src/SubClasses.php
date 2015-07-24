@@ -4,6 +4,7 @@
  * SubClasses class.
  *
  * @copyright 2015 The Open University.
+ * @license http://nfreear.mit-license.org/ MIT
  * @author  N.D.Freear, 23 May 2015.
  * @link    https://gist.github.com/nfreear/72a3a62b8ac810ea4c49
  */
@@ -89,11 +90,11 @@ class SubClasses extends OffsetIterator
     protected function getPsr4Paths()
     {
         // Mode: as a vendor package.
-        $path = __DIR__ .'/../../../../composer/autoload_psr4.php';
+        $path = __DIR__ .'/../../../composer/autoload_psr4.php';
         $psr4 = @include $path;
         if (!$psr4) {
             // Mode: self-testing?!
-            $path = __DIR__ .'/../../vendor/composer/autoload_psr4.php';
+            $path = __DIR__ .'/../vendor/composer/autoload_psr4.php';
             $psr4 = require $path;
         }
         return $psr4;
