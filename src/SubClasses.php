@@ -39,7 +39,7 @@ class SubClasses extends OffsetIterator
     /**
     * @param string $base_class A parent class or interface.
     * @param bool $callback Optionally, don't call the register callback to construct the results array.
-    * @param bool $use_constructor Optionally, get a classinstance via constructor - potentially UNSAFE!
+    * @param bool $use_constructor Optionally, get a class-instance via constructor - potentially UNSAFE!
     * @return array Array of result classes, optionally keyed.
     */
     public function match($base_class, $callback = true, $use_constructor = false)
@@ -50,10 +50,12 @@ class SubClasses extends OffsetIterator
             if (is_subclass_of($class, $base_class)) {
                 if ($callback) {
                     try {
+                        $obj = null;
                         if ($use_constructor) {
                             $obj = new $class ();
                         } else {
                             $reflect = new \ReflectionClass($class);
+                            // Ignore abstract classes.
                             if ($reflect->isInstantiable()) {
                                 $obj = $reflect->newInstanceWithoutConstructor();
                             }
