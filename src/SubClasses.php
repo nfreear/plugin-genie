@@ -78,17 +78,6 @@ class SubClasses extends OffsetIterator
     }
 
 
-    public function get_oembed_providers()
-    {
-        return $this->match('IET_OU\\Open_Media_Player\\Oembed_Provider');
-    }
-
-    public function get_player_themes()
-    {
-        return $this->match('IET_OU\\Open_Media_Player\\Media_Player_Theme');
-    }
-
-
     protected function getPsr4Paths()
     {
         // Mode: as a vendor package.
